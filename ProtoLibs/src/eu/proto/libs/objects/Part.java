@@ -16,12 +16,10 @@ import com.jme3.scene.shape.Box;
 import eu.proto.libs.ProtoApp;
 import eu.proto.libs.lua.LuaField;
 import eu.proto.libs.lua.LuaFunction;
+import eu.proto.libs.objects.DataTypes.Vector3;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.luaj.vm2.LuaTable;
-import org.luaj.vm2.LuaValue;
 
 /**
  *
@@ -50,7 +48,7 @@ public class Part extends ProtoObject {
         
         /*Method method;
         try {
-            method = Part.class.getDeclaredMethod("setSize", Vector3f.class);
+            method = Part.class.getDeclaredMethod("setSize", Vector3.class);
             this.set(LuaValue.valueOf("setSize"), new Setter<>(this,method));
         } catch (NoSuchMethodException | SecurityException ex) {
             Logger.getLogger(Part.class.getName()).log(Level.SEVERE, null, ex);
@@ -61,31 +59,26 @@ public class Part extends ProtoObject {
     
     
     @LuaField
-    public Vector3f getPosition(){
-        return part.getLocalTranslation();
+    public Vector3 getPosition(){
+        return new Vector3(part.getLocalTranslation());
     }
     
     @LuaField
-    public void setPosition(Vector3f location){
-        part.move(location);
+    public void setPosition(Vector3 location){
+        part.setLocalTranslation(location.toVector3f());
     }
     
     @LuaField
-    public Vector3f getSize(){
-        return new Vector3f(box.getXExtent(),box.getYExtent(),box.getZExtent());
+    public Vector3 getSize(){
+        return new Vector3(box.getXExtent(),box.getYExtent(),box.getZExtent());
     }
     
     @LuaField
-    public void setSize(Vector3f size){
+    public void setSize(Vector3 size){
         box.updateGeometry(box.getCenter(), size.x, size.y, size.z);
     }
     
-    @LuaFunction
-    public float size(){
-        return box.getXExtent();
-    }
-    
-    @LuaFunction
+    @LuaField
     public void setSize(float f){
         box.updateGeometry(box.getCenter(), f, f, f);
     }
@@ -103,7 +96,7 @@ public class Part extends ProtoObject {
     }
     
     @LuaField
-    public void setRotation(Vector3f rotate){
+    public void setRotation(Vector3 rotate){
         this.setRotation(rotate.x,rotate.y,rotate.z);
     }
     
@@ -179,13 +172,13 @@ public class Part extends ProtoObject {
     }
     
     @LuaFunction
-    public void pointTo(Vector3f point){
-        part.lookAt(point, Vector3f.UNIT_Y);
+    public void pointTo(Vector3 point){
+        part.lookAt(point.toVector3f(), Vector3f.UNIT_Y);
     }
     
     @LuaFunction
-    public void pointTo(Vector3f point,Vector3f upVector){
-        part.lookAt(point, upVector);
+    public void pointTo(Vector3 point,Vector3 upVector){
+        part.lookAt(point.toVector3f(), upVector.toVector3f());
     }
     
     @LuaFunction
@@ -194,7 +187,7 @@ public class Part extends ProtoObject {
     }
     
     @LuaFunction
-    public void rotate(Vector3f rotate){
+    public void rotate(Vector3 rotate){
         part.rotate(rotate.x,rotate.y,rotate.z);
     }
     

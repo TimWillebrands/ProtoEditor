@@ -24,15 +24,16 @@ package org.luaj.vm2.lib.jse;
 import eu.proto.libs.objects.ProtoObject;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaFunction;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
-import static org.luaj.vm2.lib.jse.JavaProtoMethod.methods;
 
 /**
  * LuaValue that represents a Java method.
@@ -47,9 +48,9 @@ import static org.luaj.vm2.lib.jse.JavaProtoMethod.methods;
  */
 public class JavaProtoMethod extends JavaMember {
 
-	static final Map methods = Collections.synchronizedMap(new HashMap());
-	
-	public static JavaProtoMethod forMethod(Method m) {
+        public static final Map<Method,JavaProtoMethod> methods = Collections.synchronizedMap(new HashMap());
+    
+	public static JavaProtoMethod forMethod(final Method m) {
 		JavaProtoMethod j = (JavaProtoMethod) methods.get(m);
 		if ( j == null )
 			methods.put( m, j = new JavaProtoMethod(m) );
@@ -58,6 +59,15 @@ public class JavaProtoMethod extends JavaMember {
 	
 	public static LuaFunction forMethods(JavaProtoMethod[] m) {
 		return new JavaProtoMethod.Overload(m);
+	}
+	
+	public static LuaFunction forMethods(final Method[] m) {
+            List<JavaProtoMethod> list = new ArrayList<>();
+            for(Method method : m){
+                list.add(forMethod(method));
+            }
+            JavaProtoMethod[] jm = new JavaProtoMethod[list.size()];
+            return new JavaProtoMethod.Overload(list.toArray(jm));
 	}
 	
 	final Method method;

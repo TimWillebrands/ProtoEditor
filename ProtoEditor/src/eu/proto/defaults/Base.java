@@ -5,7 +5,6 @@
 package eu.proto.defaults;
 
 import com.jme3.bullet.control.RigidBodyControl;
-import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
@@ -13,17 +12,16 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Box;
 import eu.proto.libs.ProtoApp;
 import eu.proto.libs.objects.LuaScript;
-import eu.proto.libs.objects.Part;
 
 /**
  *
  * @author tim
  */
 public class Base extends ProtoApp{    
+    private final String ls = System.lineSeparator();
+    
     LuaScript script;
-    Part part;
-    Part part2;
-    Part part3;
+    String script2Content;
     
     public void initFloor() {
         Box floorBox = new Box(Vector3f.ZERO, 10f, 0.1f, 5f);
@@ -41,25 +39,47 @@ public class Base extends ProtoApp{
     
     @Override
     public void protoInit() {
-        //initFloor();
-
-        part = (Part) _G.get("new").call("Part");
-        //part.set("size", "OHAI");
-        //System.out.println(part.get("size").call());
-        /*part2 = (Part) _G.get("new").call("Part");
-        part3 = (Part) _G.get("new").call("Part");
-        //TODO only sizing works
-        part.setSize(new Vector3f(10, 1, 1));
-        part2.setSize(new Vector3f(1, 10, 1));
-        part3.setSize(new Vector3f(1, 1, 10));
-        part.setRotation(0f , 0f , 20*FastMath.DEG_TO_RAD);
-        part2.setRotation(0f , 30*FastMath.DEG_TO_RAD, 0f );
-        part3.setRotation(40*FastMath.DEG_TO_RAD, 0f , 0f );*/
-        script = new LuaScript("ThaScript", "local part = new('Part') \n part:setSize(20)\n print(part:size())", _G);
+        String scriptContent = new StringBuilder()
+                //.append("a = 'assdasd'"+ls)
+                .append("local part = new('Part')"+ls)
+                .append("local vec = new.Vector3(2,4,6)"+ls)
+                .append("part.size = vec"+ls)
+                
+                .append("local i = 1"+ls)
+                .append("local add = 1"+ls)
+                .append("print(\"AAAAAHHHHHH!!!!!!!!!!!!!!!!!!!!!!!!\")"+ls)
+                .append("while true do"+ls)
+                .append("wait(100)"+ls)
+                .append("if i>9 then add=-1 elseif i==0 then add=1 end"+ls)
+                //.append("local vec = part.size:add(new.Vector3(0,i,0))"+ls)
+                .append("local vec2 = new.Vector3(0,-i/2,0)"+ls)
+                .append("part.size = vec"+ls)
+                .append("part.position = vec2"+ls)
+                .append("print(i)"+ls)
+                .append("i = i+add"+ls)
+                .append("end"+ls)
+                .toString();
+        
+        String scriptContent2 = new StringBuilder()
+                //.append("a = 'assdasd'"+ls)
+                .append("locqqal part = new('Part')"+ls)
+                .append("local vec = new.Vector3(2,4,6)"+ls)
+                .append("part.size = vec"+ls)
+                
+                .append("local i = 1"+ls)
+                .append("local add = 1"+ls)
+                .append("print(\"AAAAAHHHHHH!!!!!!!!!!!!!!!!!!!!!!!!\")"+ls)
+                .append("while true do"+ls)
+                .toString();
+        
+        script = protoObjectFactory.newInstance("LuaScript");
+        script.setName("DaScript");
+        script.setContent(scriptContent);
         script.run();
-    }
-
-    @Override
-    public void protoUpdate(float tpf) {
+        
+        LuaScript script2 = protoObjectFactory.newInstance("LuaScript");
+        script2.setName("DaScript2");
+        script2.setContent(scriptContent2);
+        script2.run();
     }
 }

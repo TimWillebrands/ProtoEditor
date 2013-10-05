@@ -110,7 +110,7 @@ public class TestBrickTower extends ProtoApp {
     }
     
     
-    @Override
+    //@Override
     public void protoUpdate(float tpf){
         canvas.setSize(parent.getSize());
         ch.setLocalTranslation( // center

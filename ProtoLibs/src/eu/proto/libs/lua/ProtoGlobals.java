@@ -8,17 +8,13 @@ import eu.proto.libs.ProtoApp;
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.compiler.LuaC;
-import org.luaj.vm2.lib.Bit32Lib;
 import org.luaj.vm2.lib.CoroutineLib;
 import org.luaj.vm2.lib.DebugLib;
 import org.luaj.vm2.lib.PackageLib;
 import org.luaj.vm2.lib.StringLib;
 import org.luaj.vm2.lib.TableLib;
 import org.luaj.vm2.lib.jse.JseBaseLib;
-import org.luaj.vm2.lib.jse.JseIoLib;
 import org.luaj.vm2.lib.jse.JseMathLib;
-import org.luaj.vm2.lib.jse.JseOsLib;
-import org.luaj.vm2.lib.jse.LuajavaLib;
 
 /** ProtoGlobals
  *
@@ -26,7 +22,7 @@ import org.luaj.vm2.lib.jse.LuajavaLib;
  */
 public class ProtoGlobals {
 
-    private static Globals globalEnvironment;
+    //private static Globals globalEnvironment;
 
     /**
      * Create a standard set of globals for ProtoApps including all the
@@ -35,23 +31,23 @@ public class ProtoGlobals {
      * @return Table of globals initialized with the standard Proto libraries
      */
     public static Globals standardGlobals(ProtoApp app) {
-        Globals _G = new Globals();
-        _G.load(new JseBaseLib());
-        _G.load(new PackageLib());
-        _G.load(new Bit32Lib());
-        _G.load(new TableLib());
-        _G.load(new StringLib());
-        _G.load(new CoroutineLib());
-        _G.load(new JseMathLib());
-        _G.load(new JseIoLib());
-        _G.load(new JseOsLib());
-        _G.load(new ProtoLuaLib(app));
-        _G.load(new LuajavaLib());
+        Globals _ENV = new Globals();
+        _ENV.load(new JseBaseLib());
+        _ENV.load(new PackageLib());
+        //_G.load(new Bit32Lib());
+        _ENV.load(new TableLib());
+        _ENV.load(new StringLib());
+        _ENV.load(new CoroutineLib());
+        _ENV.load(new JseMathLib());
+        //_G.load(new JseIoLib());
+        //_G.load(new JseOsLib());
+        _ENV.load(new ProtoLuaLib(app));
+        //_G.load(new LuajavaLib());
         LuaC.install();
-        _G.compiler = LuaC.instance;
-        globalEnvironment = _G;
+        _ENV.compiler = LuaC.instance;
+        //globalEnvironment = _G;
         
-        return _G;
+        return _ENV;
     }
 
     /**
@@ -65,7 +61,7 @@ public class ProtoGlobals {
     public static Globals debugGlobals(ProtoApp app) {
         Globals _G = standardGlobals(app);
         _G.load(new DebugLib());
-        globalEnvironment = _G;
+        //globalEnvironment = _G;
         return _G;
     }
 
@@ -74,9 +70,9 @@ public class ProtoGlobals {
      *
      * @return The global environment table
      */
-    public static Globals getGlobalEnvironment() {
+    /*public static Globals getGlobalEnvironment() {
         return globalEnvironment;
-    }
+    }*/
 
     /**
      * Simple wrapper for invoking a lua function with command line arguments.

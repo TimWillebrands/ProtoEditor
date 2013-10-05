@@ -5,14 +5,19 @@
 package eu.proto.editor;
 
 import eu.proto.defaults.Base;
-import eu.proto.defaults.TestBrickTower;
+import eu.proto.libs.DataPusher;
 import eu.proto.libs.ProtoApp;
 import java.awt.Canvas;
+import java.io.PrintStream;
+import java.nio.ByteBuffer;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
+import org.openide.windows.IOProvider;
+import org.openide.windows.InputOutput;
+import org.openide.windows.OutputWriter;
 
 /**
  * Top component which displays something.
@@ -38,14 +43,28 @@ import org.openide.util.NbBundle.Messages;
 public final class EditorTopComponent extends TopComponent {
     final ProtoApp app;
     final Canvas canvas;
+    InputOutput io;
 
     public EditorTopComponent() {
         initComponents();
         setName(Bundle.CTL_EditorTopComponent());
         setToolTipText(Bundle.HINT_EditorTopComponent());
         
+        
         //app = new TestBrickTower();
         app = new Base();
+        
+        io = IOProvider.getDefault().getIO(app.getClass().getSimpleName(), true);
+        
+        app.setSdtOut(new OutputDataPusher(io.getOut()));
+        app.setSdtErr(new OutputDataPusher(io.getErr()){
+            @Override public void pushData(String str){
+                super.pushData(str.replace("[string ", "[script: "));
+                super.newLine();
+            }
+        });
+        
+        
         canvas = app.startAndGetCanvas();
     }
 
@@ -102,6 +121,7 @@ public final class EditorTopComponent extends TopComponent {
     @Override
     public void componentClosed() {
         app.stop();
+        io.closeInputOutput();
     }
 
     void writeProperties(java.util.Properties p) {
@@ -114,5 +134,16 @@ public final class EditorTopComponent extends TopComponent {
     void readProperties(java.util.Properties p) {
         String version = p.getProperty("version");
         // TODO read your settings according to their version
+    }
+    
+    private class OutputDataPusher extends DataPusher {
+        final OutputWriter out;
+        OutputDataPusher(final OutputWriter out){this.out = out;}
+        
+        @Override public void newLine() {out.println();}
+        @Override public void pushData(int b) {out.write(b);}
+        @Override public void pushData(byte[] buf, int off, int len) {out.write(ByteBuffer.wrap(buf).asCharBuffer().array(), off, len);}
+        @Override public void pushData(String str) {out.write(str);}
+        @Override public void pushData(Exception ex) {out.write(ex.getLocalizedMessage());}
     }
 }

@@ -27,6 +27,8 @@ import eu.proto.libs.lua.ProtoGlobals;
 import eu.proto.libs.lua.ProtoObjectFactory;
 import org.luaj.vm2.*;
 import java.awt.Canvas;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
@@ -46,8 +48,9 @@ public abstract class ProtoApp extends Application{
     protected final Node rootNode = new Node("Root Node");
     protected final Node guiNode = new Node("Gui Node");
     protected final ProtoObjectFactory protoObjectFactory = new ProtoObjectFactory(this);
-    //protected final LuaValue _G = ProtoGlobals.standardGlobals(this);
-    protected final LuaValue _G = ProtoGlobals.debugGlobals(this);
+    protected final Map<Long,LuaThread> waitingThreads = new ConcurrentHashMap<>();
+    protected final Globals _ENV = ProtoGlobals.standardGlobals(this);
+    protected final LuaValue _G = new LuaTable();
     
     protected BulletAppState bulletAppState;
     protected PssmShadowRenderer bsr;
@@ -55,6 +58,9 @@ public abstract class ProtoApp extends Application{
     protected BitmapFont guiFont;
     protected FlyByCamera flyCam;
     protected boolean showSettings = true;
+    
+    private DataPusher StdOut;
+    private DataPusher StdErr;
     
     private AppActionListener actionListener = new AppActionListener();
     
@@ -130,6 +136,24 @@ public abstract class ProtoApp extends Application{
     }
 
     /**
+     * Retrieves ObjectFactory
+     * @return ProtoObjectFactory object
+     *
+     */
+    public LuaValue getEnvironment() {
+        return _ENV;
+    }
+
+    /**
+     * Retrieves ObjectFactory
+     * @return ProtoObjectFactory object
+     *
+     */
+    public LuaValue getSharedTable() {
+        return _G;
+    }
+
+    /**
      * Retrieves flyCam
      * @return flyCam Camera object
      *
@@ -184,6 +208,46 @@ public abstract class ProtoApp extends Application{
      */
     protected BitmapFont loadGuiFont() {
         return assetManager.loadFont("Interface/Fonts/Default.fnt");
+    }
+
+    /**
+     * Add a LuaThread to the stack, the internal update-loop will reactivate
+     * the LuaThread when the wait-time has elapsed.
+     */
+    public void addWait(LuaThread thread, long waitTime) {
+        waitingThreads.put(System.currentTimeMillis() + waitTime,thread);
+    }
+
+    /**
+     * Set the default stream of this proto app
+     * 
+     * @return The very PrintStream you just set
+     */
+    public DataPusher setSdtOut(DataPusher dp) {
+        return this.StdOut = dp;
+    }
+
+    /**
+     * Get the default stream of this proto app
+     */
+    public DataPusher getSdtOut() {
+        return this.StdOut;
+    }
+
+    /**
+     * Set the error stream of this proto app
+     * 
+     * @return The very PrintStream you just set
+     */
+    public DataPusher setSdtErr(DataPusher dp) {
+        return this.StdErr = dp;
+    }
+
+    /**
+     * Get the error stream of this proto app
+     */
+    public DataPusher getSdtErr() {
+        return this.StdErr;
     }
 
     @Override
@@ -268,12 +332,21 @@ public abstract class ProtoApp extends Application{
         }
 
         float tpf = timer.getTimePerFrame() * speed;
+        
+        if(!waitingThreads.isEmpty()){
+            for(long time : waitingThreads.keySet()){
+                if(System.currentTimeMillis() >= time){
+                    waitingThreads.get(time).resume(LuaValue.NIL);
+                    waitingThreads.remove(time);
+                }
+            }
+        }
 
         // protoUpdate states
         stateManager.update(tpf);
 
         // simple protoUpdate and root node
-        protoUpdate(tpf);
+        //protoUpdate(tpf);
  
         rootNode.updateLogicalState(tpf);
         guiNode.updateLogicalState(tpf);
@@ -302,8 +375,11 @@ public abstract class ProtoApp extends Application{
 
     public abstract void protoInit();
 
-    public abstract void protoUpdate(float tpf);
+    //public abstract void protoUpdate(float tpf);
 
     public void simpleRender(RenderManager rm) {
     }
+    
+    
 }
+
