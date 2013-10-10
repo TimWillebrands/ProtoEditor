@@ -35,10 +35,12 @@ package eu.proto.libs.objects.DataTypes;
 import com.jme3.export.*;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
+import eu.proto.libs.lua.LuaField;
+import eu.proto.libs.lua.LuaFunction;
 import eu.proto.libs.lua.ProtoUserdata;
 import java.io.IOException;
 import java.util.logging.Logger;
-import org.luaj.vm2.LuaFunction;
+//import org.luaj.vm2.LuaFunction;
 import org.luaj.vm2.LuaNumber;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.VarArgFunction;
@@ -54,6 +56,7 @@ import org.luaj.vm2.lib.VarArgFunction;
  * @author Tim Willebrands
  */
 public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, java.io.Serializable {
+    //TODO make class methods availible in lua
 
     static final long serialVersionUID = 1;
     
@@ -130,7 +133,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
         this(copy.x,copy.y,copy.z);
     }
     
-    public static LuaFunction newInstance() {
+    public static org.luaj.vm2.LuaFunction newInstance() {
         return new VarArgFunction() {
             @Override
             public LuaValue call() {
@@ -161,6 +164,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the z value of the vector.
      * @return this vector
      */
+    @LuaFunction
     public Vector3 set(float x, float y, float z) {
         this.x = x;
         this.y = y;
@@ -176,6 +180,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the vector to copy.
      * @return this vector
      */
+    @LuaFunction
     public Vector3 set(Vector3 vect) {
         this.x = vect.x;
         this.y = vect.y;
@@ -193,6 +198,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the vector to add to this.
      * @return the resultant vector.
      */
+    @LuaFunction
     public Vector3 add(Vector3 vec) {
         if (null == vec) {
             logger.warning("Provided vector is null, null returned.");
@@ -212,6 +218,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the vector to store the result in
      * @return result returns the supplied result vector.
      */
+    @LuaFunction
     public Vector3 add(Vector3 vec, Vector3 result) {
         result.x = x + vec.x;
         result.y = y + vec.y;
@@ -228,6 +235,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the vector to add to this vector.
      * @return this
      */
+    @LuaFunction
     public Vector3 addLocal(Vector3 vec) {
         if (null == vec) {
             logger.warning("Provided vector is null, null returned.");
@@ -252,6 +260,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the z value to add.
      * @return the result vector.
      */
+    @LuaFunction
     public Vector3 add(float addX, float addY, float addZ) {
         return new Vector3(x + addX, y + addY, z + addZ);
     }
@@ -269,6 +278,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            value to add to z
      * @return this
      */
+    @LuaFunction
     public Vector3 addLocal(float addX, float addY, float addZ) {
         x += addX;
         y += addY;
@@ -286,6 +296,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      * @param add
      *            the value to add
      */
+    @LuaFunction
     public Vector3 scaleAdd(float scalar, Vector3 add) {
         x = x * scalar + add.x;
         y = y * scalar + add.y;
@@ -305,6 +316,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      * @param add
      *            the value to add
      */
+    @LuaFunction
     public Vector3 scaleAdd(float scalar, Vector3 mult, Vector3 add) {
         this.x = mult.x * scalar + add.x;
         this.y = mult.y * scalar + add.y;
@@ -321,6 +333,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the vector to dot with this vector.
      * @return the resultant dot product of this vector and a given vector.
      */
+    @LuaFunction
     public float dot(Vector3 vec) {
         if (null == vec) {
             logger.warning("Provided vector is null, 0 returned.");
@@ -337,6 +350,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the vector to take the cross product of with this.
      * @return the cross product vector.
      */
+    @LuaFunction
     public Vector3 cross(Vector3 v) {
         return cross(v, null);
     }
@@ -351,6 +365,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the vector to store the cross product result.
      * @return result, after recieving the cross product vector.
      */
+    @LuaFunction
     public Vector3 cross(Vector3 v,Vector3 result) {
         return cross(v.x, v.y, v.z, result);
     }
@@ -369,6 +384,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the vector to store the cross product result.
      * @return result, after recieving the cross product vector.
      */
+    @LuaFunction
     public Vector3 cross(float otherX, float otherY, float otherZ, Vector3 result) {
         if (result == null) result = new Vector3();
         float resX = ((y * otherZ) - (z * otherY)); 
@@ -386,6 +402,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the vector to take the cross product of with this.
      * @return this.
      */
+    @LuaFunction
     public Vector3 crossLocal(Vector3 v) {
         return crossLocal(v.x, v.y, v.z);
     }
@@ -402,6 +419,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            z component of the vector to take the cross product of with this.
      * @return this.
      */
+    @LuaFunction
     public Vector3 crossLocal(float otherX, float otherY, float otherZ) {
         float tempx = ( y * otherZ ) - ( z * otherY );
         float tempy = ( z * otherX ) - ( x * otherZ );
@@ -411,6 +429,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
         return this;
     }
 
+    @LuaFunction
     public Vector3 project(Vector3 other){
         float n = this.dot(other); // A . B
         float d = other.magnitudeSquared(); // |B|^2
@@ -424,6 +443,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      * @return true if this vector is a unit vector (length() ~= 1),
      * or false otherwise.
      */
+    @LuaFunction
     public boolean isUnitVector(){
         float len = length();
         return 0.99f < len && len < 1.01f;
@@ -434,6 +454,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *
      * @return the magnitude or length of the vector.
      */
+    @LuaFunction
     public LuaNumber magnitude() {
         return LuaNumber.valueOf(FastMath.sqrt(magnitudeSquared()));
     }
@@ -444,6 +465,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *
      * @return the magnitude squared of the vector.
      */
+    @LuaFunction
     public float magnitudeSquared() {
         return x * x + y * y + z * z;
     }
@@ -455,6 +477,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      * @param v the second vector to determine the distance squared.
      * @return the distance squared between the two vectors.
      */
+    @LuaFunction
     public float distanceSquared(Vector3 v) {
         double dx = x - v.x;
         double dy = y - v.y;
@@ -469,6 +492,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      * @param v the second vector to determine the distance.
      * @return the distance between the two vectors.
      */
+    @LuaFunction
     public float distance(Vector3 v) {
         return FastMath.sqrt(distanceSquared(v));
     }
@@ -482,6 +506,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the value to multiply this vector by.
      * @return the new vector.
      */
+    @LuaFunction
     public Vector3 mult(float scalar) {
         return new Vector3(x * scalar, y * scalar, z * scalar);
     }
@@ -495,6 +520,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      * @param product the product to store the result in.
      * @return product
      */
+    @LuaFunction
     public Vector3 mult(float scalar, Vector3 product) {
         if (null == product) {
             product = new Vector3();
@@ -514,6 +540,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the value to multiply this vector by.
      * @return this
      */
+    @LuaFunction
     public Vector3 multLocal(float scalar) {
         x *= scalar;
         y *= scalar;
@@ -530,6 +557,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the vector to mult to this vector.
      * @return this
      */
+    @LuaFunction
     public Vector3 multLocal(Vector3 vec) {
         if (null == vec) {
             logger.warning("Provided vector is null, null returned.");
@@ -551,6 +579,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      * @param z
      * @return this
      */
+    @LuaFunction
     public Vector3 multLocal(float x, float y, float z) {
         this.x *= x;
         this.y *= y;
@@ -567,6 +596,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the vector to mult to this vector.
      * @return this
      */
+    @LuaFunction
     public Vector3 mult(Vector3 vec) {
         if (null == vec) {
             logger.warning("Provided vector is null, null returned.");
@@ -585,6 +615,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      * @param store result vector (null to create a new vector)
      * @return this
      */
+    @LuaFunction
     public Vector3 mult(Vector3 vec, Vector3 store) {
         if (null == vec) {
             logger.warning("Provided vector is null, null returned.");
@@ -603,6 +634,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the value to divide this vectors attributes by.
      * @return the result <code>Vector</code>.
      */
+    @LuaFunction
     public Vector3 divide(float scalar) {
         scalar = 1f/scalar;
         return new Vector3(x * scalar, y * scalar, z * scalar);
@@ -617,6 +649,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the value to divides this vector by.
      * @return this
      */
+    @LuaFunction
     public Vector3 divideLocal(float scalar) {
         scalar = 1f/scalar;
         x *= scalar;
@@ -634,6 +667,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the value to divide this vectors attributes by.
      * @return the result <code>Vector</code>.
      */
+    @LuaFunction
     public Vector3 divide(Vector3 scalar) {
         return new Vector3(x / scalar.x, y / scalar.y, z / scalar.z);
     }
@@ -647,6 +681,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the value to divides this vector by.
      * @return this
      */
+    @LuaFunction
     public Vector3 divideLocal(Vector3 scalar) {
         x /= scalar.x;
         y /= scalar.y;
@@ -661,6 +696,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *
      * @return the negated vector.
      */
+    @LuaFunction
     public Vector3 negate() {
         return new Vector3(-x, -y, -z);
     }
@@ -671,6 +707,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *
      * @return this.
      */
+    @LuaFunction
     public Vector3 negateLocal() {
         x = -x;
         y = -y;
@@ -688,6 +725,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the vector to subtract from this vector.
      * @return the result vector.
      */
+    @LuaFunction
     public Vector3 subtract(Vector3 vec) {
         return new Vector3(x - vec.x, y - vec.y, z - vec.z);
     }
@@ -701,6 +739,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the vector to subtract
      * @return this
      */
+    @LuaFunction
     public Vector3 subtractLocal(Vector3 vec) {
         if (null == vec) {
             logger.warning("Provided vector is null, null returned.");
@@ -722,6 +761,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the vector to store the result in
      * @return result
      */
+    @LuaFunction
     public Vector3 subtract(Vector3 vec, Vector3 result) {
         if(result == null) {
             result = new Vector3();
@@ -745,6 +785,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the z value to subtract.
      * @return the result vector.
      */
+    @LuaFunction
     public Vector3 subtract(float subtractX, float subtractY, float subtractZ) {
         return new Vector3(x - subtractX, y - subtractY, z - subtractZ);
     }
@@ -762,6 +803,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *            the z value to subtract.
      * @return this
      */
+    @LuaFunction
     public Vector3 subtractLocal(float subtractX, float subtractY, float subtractZ) {
         x -= subtractX;
         y -= subtractY;
@@ -774,6 +816,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *
      * @return unit vector of this vector.
      */
+    @LuaFunction
     public Vector3 normalize() {
 //        float length = length();
 //        if (length != 0) {
@@ -795,6 +838,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      *
      * @return this.
      */
+    @LuaFunction
     public Vector3 normalizeLocal() {
         // NOTE: this implementation is more optimized
         // than the old jme normalize as this method
@@ -815,6 +859,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      * in this vector.
      * @param other 
      */
+    @LuaFunction
     public void maxLocal(Vector3 other){
         x = other.x > x ? other.x : x;
         y = other.y > y ? other.y : y;
@@ -827,6 +872,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      * in this vector.
      * @param other
      */
+    @LuaFunction
     public void minLocal(Vector3 other){
         x = other.x < x ? other.x : x;
         y = other.y < y ? other.y : y;
@@ -836,6 +882,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
     /**
      * <code>zero</code> resets this vector's data to zero internally.
      */
+    @LuaFunction
     public Vector3 zero() {
         x = y = z = 0;
         return this;
@@ -848,6 +895,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      * @param otherVector a unit vector to find the angle against
      * @return the angle in radians.
      */
+    @LuaFunction
     public float angleBetween(Vector3 otherVector) {
         float dotProduct = dot(otherVector);
         float angle = FastMath.acos(dotProduct);
@@ -861,6 +909,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      * @param changeAmnt An amount between 0.0 - 1.0 representing a precentage
      *  change from this towards finalVec
      */
+    @LuaFunction
     public Vector3 interpolate(Vector3 finalVec, float changeAmnt) {
         this.x=(1-changeAmnt)*this.x + changeAmnt*finalVec.x;
         this.y=(1-changeAmnt)*this.y + changeAmnt*finalVec.y;
@@ -876,6 +925,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      * @param changeAmnt An amount between 0.0 - 1.0 representing a precentage
      *  change from beginVec towards finalVec
      */
+    @LuaFunction
     public Vector3 interpolate(Vector3 beginVec,Vector3 finalVec, float changeAmnt) {
         this.x=(1-changeAmnt)*beginVec.x + changeAmnt*finalVec.x;
         this.y=(1-changeAmnt)*beginVec.y + changeAmnt*finalVec.y;
@@ -931,6 +981,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
     }
 
     @Override
+    @LuaFunction
     public Vector3 clone() {
         try {
             return (Vector3) super.clone();
@@ -985,12 +1036,13 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      * @return the hash code value of this vector.
      */
     @Override
+    @LuaFunction
     public int hashCode() {
-        int hash = 37;
-        hash += 37 * hash + Float.floatToIntBits(x);
-        hash += 37 * hash + Float.floatToIntBits(y);
-        hash += 37 * hash + Float.floatToIntBits(z);
-        return hash;
+        int hashNumber = 37;
+        hashNumber += 37 * hashNumber + Float.floatToIntBits(x);
+        hashNumber += 37 * hashNumber + Float.floatToIntBits(y);
+        hashNumber += 37 * hashNumber + Float.floatToIntBits(z);
+        return hashNumber;
     }
 
     /**
@@ -1002,6 +1054,7 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
      * @return the string representation of this vector.
      */
     @Override
+    @LuaFunction
     public String toString() {
         return "(" + x + ", " + y + ", " + z + ")";
     }
@@ -1022,28 +1075,34 @@ public final class Vector3 extends ProtoUserdata implements Savable, Cloneable, 
         z = capsule.readFloat("z", 0);
     }
 
+    @LuaField
     public float getX() {
         return x;
     }
 
+    @LuaField
     public Vector3 setX(float x) {
         this.x = x;
         return this;
     }
 
+    @LuaField
     public float getY() {
         return y;
     }
 
+    @LuaField
     public Vector3 setY(float y) {
         this.y = y;
         return this;
     }
 
+    @LuaField
     public float getZ() {
         return z;
     }
 
+    @LuaField
     public Vector3 setZ(float z) {
         this.z = z;
         return this;

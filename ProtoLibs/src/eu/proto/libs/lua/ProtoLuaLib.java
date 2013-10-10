@@ -6,10 +6,8 @@ package eu.proto.libs.lua;
 
 import eu.proto.libs.ProtoApp;
 import eu.proto.libs.objects.DataTypes.Vector3;
-import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
-import static org.luaj.vm2.LuaValue.NONE;
 import org.luaj.vm2.Varargs;
 import org.luaj.vm2.lib.TwoArgFunction;
 import org.luaj.vm2.lib.VarArgFunction;
@@ -21,10 +19,12 @@ import org.luaj.vm2.lib.VarArgFunction;
 public class ProtoLuaLib extends TwoArgFunction {
     private final ProtoApp app;
     private final ProtoObjectFactory objectFactory;
+    
+    private final Print print = new Print();
 
     public ProtoLuaLib(ProtoApp app) {
         this.app = app;
-        objectFactory = app.getObjectFactory();
+        this.objectFactory = app.getObjectFactory();
     }
 
     @Override
@@ -39,7 +39,7 @@ public class ProtoLuaLib extends TwoArgFunction {
         
         New.setmetatable(NewMetaTable);
         env.set("new", New);
-        env.set("print", new print((Globals) env));
+        env.set("print", print);
 	env.get("package").get("loaded").set("new", New);
        
         return New;
@@ -52,14 +52,7 @@ public class ProtoLuaLib extends TwoArgFunction {
         }
     }
     
-    final class print extends VarArgFunction {
-
-        final Globals env;
-
-        print(Globals env) {
-            this.env = env;
-        }
-
+    private class Print extends VarArgFunction {
         @Override
         public Varargs invoke(Varargs args) {
             System.out.println(args);

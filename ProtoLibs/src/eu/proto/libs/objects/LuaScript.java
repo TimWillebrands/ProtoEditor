@@ -5,8 +5,10 @@ import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
-import eu.proto.libs.DataPusher;
+import eu.proto.libs.Script;
+import eu.proto.libs.lua.LuaFunction;
 import java.io.IOException;
+import java.util.Objects;
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaThread;
@@ -19,7 +21,7 @@ import org.luaj.vm2.lib.ThreeArgFunction;
  *
  * @author Tim Willebrands <Tim.Willebrands@rave.eu>
  */
-public class LuaScript extends ProtoObject{
+public class LuaScript extends ProtoObject implements Script{
     private final static String defaultName = "Script";
     
     private String content;
@@ -49,6 +51,7 @@ public class LuaScript extends ProtoObject{
         this.name = defaultName;
         this.content = "print(\"Hello World\")";
         this._ENV = (LuaTable) app.getEnvironment();
+        app.addScript(this);
     }
     
     /**
@@ -58,12 +61,12 @@ public class LuaScript extends ProtoObject{
      * @param environment
      *            The environment this script will run in
      */
-    public LuaScript(){
-        /*super();
+    /*public LuaScript(){
+        super();
         this.name = "Script";
         this.content = "print(\"Hello World\")";
-        this.environment = (LuaTable) app.getEnvironment();*/
-    }
+        this.environment = (LuaTable) app.getEnvironment();
+    }*/
     
     /**
      * Constructor instantiates a new <code>LuaScript</code> with content parameter
@@ -83,6 +86,7 @@ public class LuaScript extends ProtoObject{
         //System.out.println("asdasd");
     }*/
 
+    @Override
     public String getContent() {
         return content;
     }
@@ -113,11 +117,12 @@ public class LuaScript extends ProtoObject{
      * Runs this script by running the content trough the environment it's 
      * loadstring function.
      */
+    @Override
     public void run(){
         Globals roEnv = new Globals();
         LuaTable roEnvMt = new LuaTable();
         
-        roEnvMt.set(INDEX, this._ENV.get("_G"));
+        roEnvMt.set(INDEX, this._ENV);
         roEnvMt.set(NEWINDEX, new ThreeArgFunction(){
             @Override
             public LuaValue call(LuaValue arg1, LuaValue key, LuaValue value) {
@@ -135,7 +140,7 @@ public class LuaScript extends ProtoObject{
                     app.addWait(scriptCoroutine, arg.checklong());
                     //return _ENV.get("coroutine").get("yield").call();
                     return scriptCoroutine.state.lua_yield(LuaValue.NIL).arg1();
-                }if(arg.isnil()){
+                }else if(arg.isnil()){
                     app.addWait(scriptCoroutine, 0);
                     return scriptCoroutine.state.lua_yield(LuaValue.NIL).arg1();
                 }else{
@@ -150,9 +155,11 @@ public class LuaScript extends ProtoObject{
         if(func.arg(1).isfunction()){
             scriptCoroutine = new LuaThread(roEnv,func.arg1()); // Create coroutine from function
             Varargs ret = scriptCoroutine.resume(NIL); // Start that function
+            if(!ret.arg1().checkboolean())
+                app.getSdtErr().pushData(ret.arg(2).tojstring());
         }else if (func.arg(1).isnil()){
             app.getSdtErr().pushData(func.arg(2).tojstring());
-        }   
+        }
     }
     
     /**
@@ -163,6 +170,7 @@ public class LuaScript extends ProtoObject{
      * but all other values will be equal.
      */
     @Override
+    @LuaFunction
     public LuaScript clone(){
         LuaScript clone;
         clone = app.getObjectFactory().newInstance("LuaScript");
@@ -204,6 +212,23 @@ public class LuaScript extends ProtoObject{
     @Override
     public String typename() {
         return "userdata";
+    }
+    
+    @Override
+    public boolean equals(Object o){
+        if(!this.getClass().equals(o.getClass())){
+            return false;
+        }else if(this.hashCode()==o.hashCode()){
+            return true;
+        }        
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hashcode = 7;
+        hashcode = 89 * hashcode + Objects.hashCode(this.content);
+        return hashcode;
     }
     
 }

@@ -2,33 +2,36 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package eu.proto.libs.objects;
+package eu.proto.libs.lua;
 
 import com.jme3.asset.AssetKey;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
+import com.jme3.material.Material;
+import eu.proto.libs.objects.ProtoObject;
 import java.io.IOException;
-import org.luaj.vm2.LuaValue;
 
 /**
  *
  * @author Tim Willebrands <Tim.Willebrands@rave.eu>
  */
-public class Material extends ProtoObject {
+public abstract class ProtoMaterial extends ProtoObject {
+    protected Material material;
 
+    @LuaField
     @Override
     public void setName(String name) {
         this.name = name;
     }
 
+    @LuaField
     @Override
     public String getName() {
         return name;
     }
 
-    @Override
-    public void init() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public Material getMaterial() {
+        return material;
     }
 
     @Override
@@ -55,15 +58,4 @@ public class Material extends ProtoObject {
     public ProtoObject clone() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
-    @Override
-    public int type() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public String typename() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
 }

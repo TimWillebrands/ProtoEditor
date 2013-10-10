@@ -5,6 +5,8 @@ import com.jme3.app.DebugKeysAppState;
 import com.jme3.app.state.AppState;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
+import com.jme3.export.binary.BinaryExporter;
+import com.jme3.export.binary.BinaryImporter;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
 import com.jme3.input.KeyInput;
@@ -27,43 +29,46 @@ import eu.proto.libs.lua.ProtoGlobals;
 import eu.proto.libs.lua.ProtoObjectFactory;
 import org.luaj.vm2.*;
 import java.awt.Canvas;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author Tim Willebrands <Tim.Willebrands@rave.eu>
  */
-public abstract class ProtoApp extends Application{
+public abstract class ProtoApp extends Application {
 
     public static final String INPUT_MAPPING_EXIT = "SIMPLEAPP_Exit";
     public static final String INPUT_MAPPING_CAMERA_POS = DebugKeysAppState.INPUT_MAPPING_CAMERA_POS;
     public static final String INPUT_MAPPING_MEMORY = DebugKeysAppState.INPUT_MAPPING_MEMORY;
     public static final String INPUT_MAPPING_HIDE_STATS = "SIMPLEAPP_HideStats";
-    
     public static Material defaultMaterial;
-                             
     public final int hash;
-    
     protected final Node rootNode = new Node("Root Node");
     protected final Node guiNode = new Node("Gui Node");
     protected final ProtoObjectFactory protoObjectFactory = new ProtoObjectFactory(this);
-    protected final Map<Long,LuaThread> waitingThreads = new ConcurrentHashMap<>();
+    protected final Map<Long, LuaThread> waitingThreads = new ConcurrentHashMap<>();
     protected final Globals _ENV = ProtoGlobals.standardGlobals(this);
     protected final LuaValue _G = new LuaTable();
-    
     protected BulletAppState bulletAppState;
     protected PssmShadowRenderer bsr;
     protected BitmapText fpsText;
     protected BitmapFont guiFont;
     protected FlyByCamera flyCam;
     protected boolean showSettings = true;
-    
     private DataPusher StdOut;
     private DataPusher StdErr;
-    
     private AppActionListener actionListener = new AppActionListener();
     
+    private final Set<Script> scripts = new HashSet<>();
+    private boolean runScripts = false;
+
     private class AppActionListener implements ActionListener {
 
         @Override
@@ -87,12 +92,12 @@ public abstract class ProtoApp extends Application{
     }
 
     public ProtoApp() {
-        this( new StatsAppState(), new FlyCamAppState(), new DebugKeysAppState() );
+        this(new StatsAppState(), new FlyCamAppState(), new DebugKeysAppState());
     }
 
-    public ProtoApp( AppState... initialStates ) {
+    public ProtoApp(AppState... initialStates) {
         super();
-        
+
         if (initialStates != null) {
             for (AppState a : initialStates) {
                 if (a != null) {
@@ -100,7 +105,7 @@ public abstract class ProtoApp extends Application{
                 }
             }
         }
-        
+
         this.hash = this.hashCode();
     }
 
@@ -111,14 +116,43 @@ public abstract class ProtoApp extends Application{
         if (settings == null) {
             setSettings(new AppSettings(true));
         }
-        
+
         settings.setTitle("Proto - " + settings.getTitle());
-        
+
         setSettings(settings);
         super.start();
     }
+
+    public File save(File file) {
+        BinaryExporter exporter = BinaryExporter.getInstance();
+        try {
+            exporter.save(rootNode, file);
+        } catch (IOException ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error: Failed to save game!", ex);
+        }
+        return file;
+    }
+
+    public File load(File file) {
+        BinaryImporter importer = BinaryImporter.getInstance();
+        try {
+            importer.setAssetManager(assetManager);
+            importer.load(file);
+        } catch (IOException ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error: Failed to load game!", ex);
+        }
+        return file;
+    }
     
-    public Canvas startAndGetCanvas(){
+    public void addScript(Script script){
+        scripts.add(script);
+    }
+    
+    public void runScripts(){
+        runScripts = true;
+    }
+
+    public Canvas startAndGetCanvas() {
         this.setPauseOnLostFocus(false);
         this.createCanvas();
         this.startCanvas();
@@ -128,6 +162,7 @@ public abstract class ProtoApp extends Application{
 
     /**
      * Retrieves ObjectFactory
+     *
      * @return ProtoObjectFactory object
      *
      */
@@ -137,6 +172,7 @@ public abstract class ProtoApp extends Application{
 
     /**
      * Retrieves ObjectFactory
+     *
      * @return ProtoObjectFactory object
      *
      */
@@ -146,6 +182,7 @@ public abstract class ProtoApp extends Application{
 
     /**
      * Retrieves ObjectFactory
+     *
      * @return ProtoObjectFactory object
      *
      */
@@ -155,6 +192,7 @@ public abstract class ProtoApp extends Application{
 
     /**
      * Retrieves flyCam
+     *
      * @return flyCam Camera object
      *
      */
@@ -164,6 +202,7 @@ public abstract class ProtoApp extends Application{
 
     /**
      * Retrieves guiNode
+     *
      * @return guiNode Node object
      *
      */
@@ -173,6 +212,7 @@ public abstract class ProtoApp extends Application{
 
     /**
      * Gets the PhysicsSpace from the bulletAppState of this ProtoApp
+     *
      * @return PhysicsSpace object
      *
      */
@@ -182,6 +222,7 @@ public abstract class ProtoApp extends Application{
 
     /**
      * Retrieves rootNode
+     *
      * @return rootNode Node object
      *
      */
@@ -195,6 +236,7 @@ public abstract class ProtoApp extends Application{
 
     /**
      * Toggles settings window to display at start-up
+     *
      * @param showSettings Sets true/false
      *
      */
@@ -203,8 +245,8 @@ public abstract class ProtoApp extends Application{
     }
 
     /**
-     *  Creates the font that will be set to the guiFont field
-     *  and subsequently set as the font for the stats text.
+     * Creates the font that will be set to the guiFont field and subsequently
+     * set as the font for the stats text.
      */
     protected BitmapFont loadGuiFont() {
         return assetManager.loadFont("Interface/Fonts/Default.fnt");
@@ -215,12 +257,12 @@ public abstract class ProtoApp extends Application{
      * the LuaThread when the wait-time has elapsed.
      */
     public void addWait(LuaThread thread, long waitTime) {
-        waitingThreads.put(System.currentTimeMillis() + waitTime,thread);
+        waitingThreads.put(System.currentTimeMillis() + waitTime, thread);
     }
 
     /**
      * Set the default stream of this proto app
-     * 
+     *
      * @return The very PrintStream you just set
      */
     public DataPusher setSdtOut(DataPusher dp) {
@@ -236,7 +278,7 @@ public abstract class ProtoApp extends Application{
 
     /**
      * Set the error stream of this proto app
-     * 
+     *
      * @return The very PrintStream you just set
      */
     public DataPusher setSdtErr(DataPusher dp) {
@@ -263,7 +305,7 @@ public abstract class ProtoApp extends Application{
         guiViewPort.attachScene(guiNode);
 
         if (inputManager != null) {
-        
+
             // We have to special-case the FlyCamAppState because too
             // many SimpleApplication subclasses expect it to exist in
             // simpleInit().  But at least it only gets initialized if
@@ -273,7 +315,7 @@ public abstract class ProtoApp extends Application{
                 cam.setLocation(new Vector3f(0, 25f, 12f));
                 cam.lookAt(Vector3f.ZERO, new Vector3f(0, 1, 0));
                 cam.setFrustumFar(256);
-                stateManager.getState(FlyCamAppState.class).setCamera( flyCam ); 
+                stateManager.getState(FlyCamAppState.class).setCamera(flyCam);
             }
 
             if (context.getType() == Type.Display) {
@@ -282,10 +324,10 @@ public abstract class ProtoApp extends Application{
 
             if (stateManager.getState(StatsAppState.class) != null) {
                 inputManager.addMapping(INPUT_MAPPING_HIDE_STATS, new KeyTrigger(KeyInput.KEY_F5));
-                inputManager.addListener(actionListener, INPUT_MAPPING_HIDE_STATS);            
+                inputManager.addListener(actionListener, INPUT_MAPPING_HIDE_STATS);
             }
-            
-            inputManager.addListener(actionListener, INPUT_MAPPING_EXIT);            
+
+            inputManager.addListener(actionListener, INPUT_MAPPING_EXIT);
         }
 
         if (stateManager.getState(StatsAppState.class) != null) {
@@ -294,24 +336,24 @@ public abstract class ProtoApp extends Application{
             stateManager.getState(StatsAppState.class).setFont(guiFont);
             fpsText = stateManager.getState(StatsAppState.class).getFpsText();
         }
-        
-        rootNode.attachChild(SkyFactory.createSky(
-            assetManager, "Textures/Sky/Bright/BrightSky.dds", false));
 
-        
-        
-        cam.setFrustumPerspective(45f, (float)cam.getWidth() / cam.getHeight(), 0.01f, 1000f);
-        
+        rootNode.attachChild(SkyFactory.createSky(
+                assetManager, "Textures/Sky/Bright/BrightSky.dds", false));
+
+
+
+        cam.setFrustumPerspective(45f, (float) cam.getWidth() / cam.getHeight(), 0.01f, 1000f);
+
         defaultMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         /*TextureKey key = new TextureKey("Textures/Terrain/BrickWall/BrickWall.jpg");
-        key.setGenerateMips(true);
-        Texture tex = assetManager.loadTexture(key);*/
+         key.setGenerateMips(true);
+         Texture tex = assetManager.loadTexture(key);*/
         defaultMaterial.setColor("Color", ColorRGBA.Blue);
-        
+
         bulletAppState = new BulletAppState();
-        bulletAppState.setThreadingType(BulletAppState.ThreadingType.SEQUENTIAL);
+        bulletAppState.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
         stateManager.attach(bulletAppState);
-        
+
         rootNode.setShadowMode(RenderQueue.ShadowMode.Off);
         bsr = new PssmShadowRenderer(assetManager, 1024, 2);
         bsr.setDirection(new Vector3f(-1, -1, -1).normalizeLocal());
@@ -320,7 +362,7 @@ public abstract class ProtoApp extends Application{
         bsr.setCompareMode(PssmShadowRenderer.CompareMode.Hardware);
         bsr.setFilterMode(PssmShadowRenderer.FilterMode.PCF4);
         viewPort.addProcessor(bsr);
-        
+
         protoInit();
     }
 
@@ -333,9 +375,16 @@ public abstract class ProtoApp extends Application{
 
         float tpf = timer.getTimePerFrame() * speed;
         
-        if(!waitingThreads.isEmpty()){
-            for(long time : waitingThreads.keySet()){
-                if(System.currentTimeMillis() >= time){
+        if(runScripts){
+            for(Script script : scripts){
+                script.run();
+            }
+            runScripts = false;
+        }
+
+        if (!waitingThreads.isEmpty()) {
+            for (long time : waitingThreads.keySet()) {
+                if (System.currentTimeMillis() >= time) {
                     waitingThreads.get(time).resume(LuaValue.NIL);
                     waitingThreads.remove(time);
                 }
@@ -347,10 +396,10 @@ public abstract class ProtoApp extends Application{
 
         // simple protoUpdate and root node
         //protoUpdate(tpf);
- 
+
         rootNode.updateLogicalState(tpf);
         guiNode.updateLogicalState(tpf);
-        
+
         rootNode.updateGeometricState();
         guiNode.updateGeometricState();
 
@@ -358,7 +407,7 @@ public abstract class ProtoApp extends Application{
         stateManager.render(renderManager);
         renderManager.render(tpf, context.isRenderable());
         simpleRender(renderManager);
-        stateManager.postRender();        
+        stateManager.postRender();
     }
 
     public void setDisplayFps(boolean show) {
@@ -376,10 +425,6 @@ public abstract class ProtoApp extends Application{
     public abstract void protoInit();
 
     //public abstract void protoUpdate(float tpf);
-
     public void simpleRender(RenderManager rm) {
     }
-    
-    
 }
-

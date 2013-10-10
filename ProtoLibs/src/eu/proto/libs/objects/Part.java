@@ -4,6 +4,7 @@
  */
 package eu.proto.libs.objects;
 
+import eu.proto.libs.lua.ProtoMaterial;
 import com.jme3.asset.AssetKey;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.export.JmeExporter;
@@ -28,7 +29,7 @@ import java.util.logging.Logger;
 public class Part extends ProtoObject {
     private Box box;
     private Geometry part;
-    private Material material;
+    private ProtoMaterial material;
     
     @Override
     public void init(){
@@ -45,15 +46,6 @@ public class Part extends ProtoObject {
         
         this.app.getRootNode().attachChild(part);
         this.app.getPhysicsSpace().add(part);
-        
-        /*Method method;
-        try {
-            method = Part.class.getDeclaredMethod("setSize", Vector3.class);
-            this.set(LuaValue.valueOf("setSize"), new Setter<>(this,method));
-        } catch (NoSuchMethodException | SecurityException ex) {
-            Logger.getLogger(Part.class.getName()).log(Level.SEVERE, null, ex);
-        }*/
-        //this.setmetatable(mt);
     }
     
     
@@ -106,13 +98,14 @@ public class Part extends ProtoObject {
     }
 
     @LuaField
-    public Material getMaterial() {
+    public ProtoMaterial getMaterial() {
         return material;
     }
 
     @LuaField
-    public void setMaterial(Material material) {
+    public void setMaterial(ProtoMaterial material) {
         this.material = material;
+        this.part.setMaterial(material.getMaterial());
     }
     
     @LuaField
@@ -233,16 +226,6 @@ public class Part extends ProtoObject {
         }
         
         return clone;
-    }
-
-    @Override
-    public int type() {
-        return TUSERDATA;
-    }
-
-    @Override
-    public String typename() {
-        return "userdata";
     }
     
 }

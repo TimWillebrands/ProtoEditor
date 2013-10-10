@@ -7,8 +7,9 @@ package eu.proto.editor;
 import eu.proto.defaults.Base;
 import eu.proto.libs.DataPusher;
 import eu.proto.libs.ProtoApp;
+import eu.proto.libs.objects.LuaScript;
+import eu.proto.luaeditor.LuaEditorTopComponent;
 import java.awt.Canvas;
-import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
@@ -18,6 +19,7 @@ import org.openide.util.NbBundle.Messages;
 import org.openide.windows.IOProvider;
 import org.openide.windows.InputOutput;
 import org.openide.windows.OutputWriter;
+import org.openide.windows.WindowManager;
 
 /**
  * Top component which displays something.
@@ -28,7 +30,7 @@ import org.openide.windows.OutputWriter;
 @TopComponent.Description(
         preferredID = "EditorTopComponent",
         //iconBase="SET/PATH/TO/ICON/HERE", 
-        persistenceType = TopComponent.PERSISTENCE_ALWAYS)
+        persistenceType = TopComponent.PERSISTENCE_NEVER)
 @TopComponent.Registration(mode = "editor", openAtStartup = true)
 @ActionID(category = "Window", id = "eu.proto.editor.EditorTopComponent")
 @ActionReference(path = "Menu/Window" /*, position = 333 */)
@@ -43,7 +45,7 @@ import org.openide.windows.OutputWriter;
 public final class EditorTopComponent extends TopComponent {
     final ProtoApp app;
     final Canvas canvas;
-    InputOutput io;
+    final InputOutput io;
 
     public EditorTopComponent() {
         initComponents();
@@ -64,8 +66,42 @@ public final class EditorTopComponent extends TopComponent {
             }
         });
         
+        final LuaScript script = app.getObjectFactory().newInstance("LuaScript");
+        final String ls = System.lineSeparator();
+        
+        final String scriptContent = new StringBuilder()
+                .append("print(getmetatable(new).__call)"+ls)
+                .append("print(new.Vector3)"+ls)
+                .append("local part = new(\"Part\")"+ls)
+                .append("local vec = new.Vector3(2,4,6)"+ls)
+                .append("part.size = vec"+ls+ls)
+                
+                .append("local i = 1"+ls)
+                .append("local add = 1"+ls)
+                .append("while true do"+ls)
+                .append("\twait(500)"+ls)
+                .append("\tif i>29 then add=-1 elseif i==0 then add=1 end"+ls)
+                .append("\tprint(\"sdfgdfg\")"+ls)
+                .append("\ti = i+add"+ls)
+                .append("end"+ls)
+                .toString();
+        
+        script.setName("DaScript");
+        script.setContent(scriptContent);
         
         canvas = app.startAndGetCanvas();
+        
+        final int tabPos = this.getTabPosition()+2;
+
+        WindowManager.getDefault().invokeWhenUIReady(new Runnable() {
+            @Override
+            public void run() {
+                LuaEditorTopComponent scriptEditor = new LuaEditorTopComponent(script);
+                scriptEditor.openAtTabPosition(tabPos);
+            }
+        });
+        
+        app.runScripts();
     }
 
     /**
